@@ -1,11 +1,14 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, Users, Recycle, Heart, Leaf, Droplets } from 'lucide-react';
+import { ArrowRight, Users, Recycle, Heart, Leaf, Droplets, Phone } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import ItemCard from '../components/ItemCard';
+import { callApi } from '../api/call';
 
 export default function LandingPage() {
   const { state, loadItems } = useApp();
+  const [isCallLoading, setIsCallLoading] = useState(false);
+  const [callMessage, setCallMessage] = useState('');
   
   // Load items on component mount
   useEffect(() => {
@@ -13,6 +16,20 @@ export default function LandingPage() {
   }, []);
 
   const featuredItems = state.items.slice(0, 6);
+
+  const handleCallBot = async () => {
+    setIsCallLoading(true);
+    setCallMessage('');
+    
+    try {
+      const response = await callApi.makeCall();
+      setCallMessage(response.message);
+    } catch (error) {
+      setCallMessage(error instanceof Error ? error.message : 'Failed to make call');
+    } finally {
+      setIsCallLoading(false);
+    }
+  };
 
   // Static sustainability stats for demonstration
   const sustainabilityStats = {
@@ -50,7 +67,33 @@ export default function LandingPage() {
               >
                 Browse Items
               </Link>
+              <button
+                onClick={handleCallBot}
+                disabled={isCallLoading}
+                className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-8 py-3 rounded-lg font-semibold hover:from-orange-600 hover:to-red-600 transition-all duration-200 inline-flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+              >
+                {isCallLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                    Calling...
+                  </>
+                ) : (
+                  <>
+                    <Phone className="mr-2 h-5 w-5" />
+                    Call a bot
+                  </>
+                )}
+              </button>
             </div>
+            {callMessage && (
+              <div className={`mt-4 p-3 rounded-lg ${
+                callMessage.includes('success') || callMessage.includes('initiated')
+                  ? 'bg-green-100 text-green-800 border border-green-200'
+                  : 'bg-red-100 text-red-800 border border-red-200'
+              }`}>
+                {callMessage}
+              </div>
+            )}
           </div>
         </div>
       </section>
