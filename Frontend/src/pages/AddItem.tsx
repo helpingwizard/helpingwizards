@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Upload, X, Plus, ArrowLeft, ArrowRight, Check, Image as ImageIcon } from 'lucide-react';
+import { Upload, X, Plus, ArrowLeft, ArrowRight, Check } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { categories, sizes, conditions } from '../data/sampleData';
+import { categories, sizes, conditions } from '../constants';
 
 interface FormData {
   title: string;
@@ -18,7 +18,7 @@ interface FormData {
 
 export default function AddItem() {
   const navigate = useNavigate();
-  const { state, dispatch } = useApp();
+  const { state, createItem } = useApp();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<FormData>({
     title: '',
@@ -34,6 +34,20 @@ export default function AddItem() {
   const [newTag, setNewTag] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Check if user is authenticated
+  if (!state.user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Please log in to add items</h2>
+          <button onClick={() => navigate('/')} className="btn-primary">
+            Go to Home
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const steps = [
     { id: 1, title: 'Photos', description: 'Upload photos of your item' },
@@ -53,7 +67,7 @@ export default function AddItem() {
     const files = e.target.files;
     if (files) {
       // Simulate image upload by creating placeholder URLs
-      const newImages = Array.from(files).map((file, index) => 
+      const newImages = Array.from(files).map((_, index) => 
         `https://images.unsplash.com/photo-${1500000000 + index}?w=500&h=600&fit=crop`
       );
       setFormData(prev => ({
@@ -140,21 +154,23 @@ export default function AddItem() {
     setIsSubmitting(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const newItem = {
-        id: Date.now().toString(),
-        ...formData,
-        owner: state.user!,
-        dateAdded: new Date().toISOString().split('T')[0],
-        isFavorite: false
+      const itemData = {
+        title: formData.title,
+        description: formData.description,
+        category: formData.category,
+        size: formData.size,
+        condition: formData.condition,
+        tags: formData.tags.join(','),
+        images: formData.images,
+        location: formData.location,
+        points: formData.points
       };
 
-      dispatch({ type: 'ADD_ITEM', payload: newItem });
-      navigate(`/item/${newItem.id}`);
+      await createItem(itemData);
+      navigate('/dashboard');
     } catch (error) {
       console.error('Error adding item:', error);
+      setErrors({ submit: 'Failed to add item. Please try again.' });
     } finally {
       setIsSubmitting(false);
     }

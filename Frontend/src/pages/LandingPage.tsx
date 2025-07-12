@@ -1,10 +1,26 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, Users, Recycle, Heart, TrendingUp, Leaf, Droplets } from 'lucide-react';
-import { sampleItems, sustainabilityStats } from '../data/sampleData';
+import { ArrowRight, Users, Recycle, Heart, Leaf, Droplets } from 'lucide-react';
+import { useApp } from '../context/AppContext';
+import { useEffect } from 'react';
 import ItemCard from '../components/ItemCard';
 
 export default function LandingPage() {
-  const featuredItems = sampleItems.slice(0, 6);
+  const { state, loadItems } = useApp();
+  
+  // Load items on component mount
+  useEffect(() => {
+    loadItems();
+  }, []);
+
+  const featuredItems = state.items.slice(0, 6);
+
+  // Static sustainability stats for demonstration
+  const sustainabilityStats = {
+    itemsSwapped: 15420,
+    co2Saved: 38550,
+    waterSaved: 692340,
+    communityMembers: 2847
+  };
 
   return (
     <div className="min-h-screen">
@@ -104,21 +120,38 @@ export default function LandingPage() {
             </p>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featuredItems.map((item) => (
-              <ItemCard key={item.id} item={item} />
-            ))}
-          </div>
-          
-          <div className="text-center mt-8">
-            <Link
-              to="/browse"
-              className="btn-primary inline-flex items-center"
-            >
-              View All Items
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Link>
-          </div>
+          {featuredItems.length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {featuredItems.map((item) => (
+                  <ItemCard key={item.id} item={item} />
+                ))}
+              </div>
+              
+              <div className="text-center mt-8">
+                <Link
+                  to="/browse"
+                  className="btn-primary inline-flex items-center"
+                >
+                  View All Items
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Link>
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-gray-500 mb-6">
+                No items available yet. Be the first to list an item!
+              </p>
+              <Link
+                to="/add-item"
+                className="btn-primary inline-flex items-center"
+              >
+                List Your First Item
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Link>
+            </div>
+          )}
         </div>
       </section>
 

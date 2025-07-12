@@ -7,7 +7,13 @@ def get_user_by_email(db: Session, email: str):
     return db.query(User).filter(User.email == email).first()
 
 def create_user(db: Session, user: UserCreate):
-    db_user = User(email=user.email, hashed_password=get_password_hash(user.password))
+    db_user = User(
+        email=user.email, 
+        hashed_password=get_password_hash(user.password),
+        name=user.name,
+        avatar=user.avatar,
+        location=user.location
+    )
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
@@ -18,10 +24,26 @@ def update_user_profile(db: Session, db_user: User, updates: UserProfileUpdate):
         db_user.email = updates.email
     if updates.password:
         db_user.hashed_password = get_password_hash(updates.password)
-    if updates.is_admin is not None:
-        db_user.is_admin = updates.is_admin
-    if updates.points is not None:
-        db_user.points = updates.points
+    if updates.name:
+        db_user.name = updates.name
+    if updates.avatar:
+        db_user.avatar = updates.avatar
+    if updates.location:
+        db_user.location = updates.location
     db.commit()
     db.refresh(db_user)
     return db_user
+
+def update_user_stats_on_swap_completion(db: Session, user_id: int, points_earned: int):
+    """Update user stats when a swap is completed"""
+    user = db.query(User).filter(User.id == user_id).first()
+    if user:
+        user.swaps_completed += 1
+        user.points += points_earned
+        user.impact_score += 10  # Fixed impact score per swap
+        db.commit()
+        db.refresh(user)
+    return user
+
+def get_user_by_id(db: Session, user_id: int):
+    return db.query(User).filter(User.id == user_id).first()

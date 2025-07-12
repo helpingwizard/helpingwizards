@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Enum, Text
+from sqlalchemy import Column, Integer, String, ForeignKey, Enum, Text, DateTime
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 from app.db.base_class import Base
 import enum
 
@@ -20,7 +21,11 @@ class Item(Base):
     size = Column(String)
     condition = Column(String)
     tags = Column(String)
+    images = Column(Text)  # JSON string of image URLs
+    location = Column(String)
+    points = Column(Integer, default=0)
     status = Column(Enum(ItemStatus), default=ItemStatus.available)
+    date_added = Column(DateTime, default=func.now())
     owner_id = Column(Integer, ForeignKey("users.id"))
 
     owner = relationship("User", back_populates="items")

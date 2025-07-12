@@ -1,22 +1,26 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Heart, MapPin, Star, Coins, MessageCircle, Shield, ChevronLeft, ChevronRight, User } from 'lucide-react';
+import { Heart, MapPin, Star, Coins, Shield, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { sampleItems } from '../data/sampleData';
 import ItemCard from '../components/ItemCard';
 import Modal from '../components/Modal';
 
 export default function ItemDetail() {
   const { id } = useParams<{ id: string }>();
-  const { state, dispatch } = useApp();
+  const { state, dispatch, loadItems, createSwapRequest } = useApp();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showSwapModal, setShowSwapModal] = useState(false);
   const [swapMessage, setSwapMessage] = useState('');
 
-  const item = sampleItems.find(item => item.id === id);
-  const similarItems = sampleItems.filter(i => 
-    i.id !== id && 
-    (i.category === item?.category || i.tags.some(tag => item?.tags.includes(tag)))
+  // Load items on component mount
+  useEffect(() => {
+    loadItems();
+  }, []);
+
+  const item = state.items.find(item => item.id === Number(id));
+  const similarItems = state.items.filter(i => 
+    i.id !== Number(id) && 
+    i.category === item?.category
   ).slice(0, 4);
 
   if (!item) {
@@ -30,34 +34,38 @@ export default function ItemDetail() {
     );
   }
 
+  const itemImages = item.images && item.images.length > 0 ? item.images : ['/placeholder-image.jpg'];
+
   const handlePrevImage = () => {
     setCurrentImageIndex(prev => 
-      prev === 0 ? item.images.length - 1 : prev - 1
+      prev === 0 ? itemImages.length - 1 : prev - 1
     );
   };
 
   const handleNextImage = () => {
     setCurrentImageIndex(prev => 
-      prev === item.images.length - 1 ? 0 : prev + 1
+      prev === itemImages.length - 1 ? 0 : prev + 1
     );
   };
 
-  const handleSwapRequest = () => {
-    if (!state.user) return;
+  const handleSwapRequest = async () => {
+    if (!state.user || !item) return;
     
-    const newSwapRequest = {
-      id: Date.now().toString(),
-      itemId: item.id,
-      requesterId: state.user.id,
-      ownerId: item.owner.id,
-      status: 'pending' as const,
-      message: swapMessage,
-      dateCreated: new Date().toISOString().split('T')[0]
-    };
+    try {
+      const swapData = {
+        item_id: item.id,
+        requester_id: state.user.id,
+        owner_id: item.owner_id,
+        message: swapMessage,
+      };
 
-    dispatch({ type: 'ADD_SWAP_REQUEST', payload: newSwapRequest });
-    setShowSwapModal(false);
-    setSwapMessage('');
+      await createSwapRequest(swapData);
+      setShowSwapModal(false);
+      setSwapMessage('');
+    } catch (error) {
+      console.error('Failed to create swap request:', error);
+      // Could add user-friendly error handling here
+    }
   };
 
   const handleToggleFavorite = () => {
@@ -82,12 +90,12 @@ export default function ItemDetail() {
           <div className="space-y-4">
             <div className="relative bg-white rounded-lg overflow-hidden shadow-sm">
               <img
-                src={item.images[currentImageIndex]}
+                src={itemImages[currentImageIndex]}
                 alt={item.title}
                 className="w-full h-96 object-cover"
               />
               
-              {item.images.length > 1 && (
+              {itemImages.length > 1 && (
                 <>
                   <button
                     onClick={handlePrevImage}
@@ -105,9 +113,9 @@ export default function ItemDetail() {
               )}
               
               {/* Image indicators */}
-              {item.images.length > 1 && (
+              {itemImages.length > 1 && (
                 <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-                  {item.images.map((_, index) => (
+                  {itemImages.map((_, index) => (
                     <button
                       key={index}
                       onClick={() => setCurrentImageIndex(index)}
@@ -121,9 +129,9 @@ export default function ItemDetail() {
             </div>
 
             {/* Thumbnail Images */}
-            {item.images.length > 1 && (
+            {itemImages.length > 1 && (
               <div className="flex space-x-2 overflow-x-auto">
-                {item.images.map((image, index) => (
+                {itemImages.map((image, index) => (
                   <button
                     key={index}
                     onClick={() => setCurrentImageIndex(index)}
@@ -155,7 +163,7 @@ export default function ItemDetail() {
                     <span>•</span>
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                       item.condition === 'Excellent' ? 'bg-green-100 text-green-800' :
-                      item.condition === 'Very Good' ? 'bg-blue-100 text-blue-800' :
+                      item.condition === 'Very good' ? 'bg-blue-100 text-blue-800' :
                       item.condition === 'Good' ? 'bg-yellow-100 text-yellow-800' :
                       'bg-gray-100 text-gray-800'
                     }`}>
@@ -192,95 +200,74 @@ export default function ItemDetail() {
               </div>
 
               <div className="space-y-4">
-                <button
-                  onClick={() => setShowSwapModal(true)}
-                  className="w-full btn-primary"
-                >
-                  Request Swap
-                </button>
-                <button className="w-full btn-secondary">
-                  Redeem with Points
-                </button>
+                {state.user ? (
+                  <button
+                    onClick={() => setShowSwapModal(true)}
+                    className="w-full btn-primary"
+                  >
+                    Request Swap
+                  </button>
+                ) : (
+                  <div className="text-center text-gray-500">
+                    Please log in to request a swap
+                  </div>
+                )}
+
+                <div className="text-sm text-gray-500 text-center">
+                  <Shield className="h-4 w-4 inline mr-1" />
+                  Secure swap guaranteed
+                </div>
               </div>
             </div>
+
+            {/* Item Description */}
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">Description</h3>
+              <p className="text-gray-700 leading-relaxed">
+                {item.description || 'No description provided.'}
+              </p>
+            </div>
+
+            {/* Tags */}
+            {item.tags && (
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">Tags</h3>
+                <div className="flex flex-wrap gap-2">
+                  {item.tags.split(',').map((tag) => (
+                    <span
+                      key={tag}
+                      className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800"
+                    >
+                      {tag.trim()}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Owner Info */}
             <div className="bg-white rounded-lg shadow-sm p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Owner</h3>
-              <div className="flex items-center space-x-4">
-                <img
-                  src={item.owner.avatar}
-                  alt={item.owner.name}
-                  className="h-12 w-12 rounded-full"
-                />
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2 mb-1">
-                    <h4 className="font-medium text-gray-900">{item.owner.name}</h4>
-                    <div className="flex items-center space-x-1">
-                      <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                      <span className="text-sm text-gray-600">{item.owner.rating}</span>
-                    </div>
-                  </div>
-                  <p className="text-sm text-gray-500">
-                    {item.owner.swapsCompleted} successful swaps
-                  </p>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">Owner Information</h3>
+              <div className="flex items-center space-x-3">
+                <div className="h-12 w-12 rounded-full bg-gray-300 flex items-center justify-center">
+                  <span className="text-sm text-gray-600">U</span>
                 </div>
-                <div className="flex space-x-2">
-                  <Link
-                    to={`/profile/${item.owner.id}`}
-                    className="btn-secondary text-sm"
-                  >
-                    View Profile
-                  </Link>
-                  <button className="btn-ghost text-sm">
-                    <MessageCircle className="h-4 w-4 mr-1" />
-                    Message
-                  </button>
+                <div>
+                  <div className="font-medium text-gray-900">Owner #{item.owner_id}</div>
+                  <div className="flex items-center space-x-1 text-sm text-gray-500">
+                    <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                    <span>5.0 rating</span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Description */}
-        <div className="mt-8 bg-white rounded-lg shadow-sm p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Description</h3>
-          <p className="text-gray-600 leading-relaxed">{item.description}</p>
-          
-          {/* Tags */}
-          <div className="mt-4">
-            <h4 className="text-sm font-medium text-gray-700 mb-2">Tags</h4>
-            <div className="flex flex-wrap gap-2">
-              {item.tags.map(tag => (
-                <span
-                  key={tag}
-                  className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Safety Tips */}
-        <div className="mt-8 bg-amber-50 border border-amber-200 rounded-lg p-6">
-          <div className="flex items-center mb-4">
-            <Shield className="h-5 w-5 text-amber-600 mr-2" />
-            <h3 className="text-lg font-semibold text-amber-900">Safety Tips</h3>
-          </div>
-          <ul className="space-y-2 text-sm text-amber-800">
-            <li>• Meet in a public place for item exchange</li>
-            <li>• Verify item condition before completing the swap</li>
-            <li>• Use ReWear's messaging system for communication</li>
-            <li>• Report any suspicious activity to our support team</li>
-          </ul>
         </div>
 
         {/* Similar Items */}
         {similarItems.length > 0 && (
-          <div className="mt-8">
-            <h3 className="text-xl font-semibold text-gray-900 mb-6">Similar Items</h3>
+          <div className="mt-16">
+            <h2 className="text-2xl font-bold text-gray-900 mb-8">Similar Items</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {similarItems.map(similarItem => (
                 <ItemCard key={similarItem.id} item={similarItem} />
@@ -295,47 +282,30 @@ export default function ItemDetail() {
         isOpen={showSwapModal}
         onClose={() => setShowSwapModal(false)}
         title="Request Swap"
-        maxWidth="lg"
       >
         <div className="space-y-4">
-          <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
-            <img
-              src={item.images[0]}
-              alt={item.title}
-              className="h-16 w-16 rounded-lg object-cover"
-            />
-            <div>
-              <h4 className="font-medium text-gray-900">{item.title}</h4>
-              <p className="text-sm text-gray-500">{item.category} • Size {item.size}</p>
-              <p className="text-sm text-primary-600 font-medium">{item.points} points</p>
-            </div>
+          <div className="text-sm text-gray-600">
+            Send a message to the owner explaining why you'd like to swap and what you might offer in return.
           </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Message to {item.owner.name}
-            </label>
-            <textarea
-              rows={4}
-              value={swapMessage}
-              onChange={(e) => setSwapMessage(e.target.value)}
-              placeholder="Tell them why you'd like to swap and what you can offer..."
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            />
-          </div>
-          
+          <textarea
+            value={swapMessage}
+            onChange={(e) => setSwapMessage(e.target.value)}
+            placeholder="Hi! I'm interested in swapping for this item. I have..."
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 h-24 resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          />
           <div className="flex space-x-3">
-            <button
-              onClick={handleSwapRequest}
-              className="flex-1 btn-primary"
-            >
-              Send Request
-            </button>
             <button
               onClick={() => setShowSwapModal(false)}
               className="flex-1 btn-secondary"
             >
               Cancel
+            </button>
+            <button
+              onClick={handleSwapRequest}
+              disabled={!swapMessage.trim()}
+              className="flex-1 btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Send Request
             </button>
           </div>
         </div>

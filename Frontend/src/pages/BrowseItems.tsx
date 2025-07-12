@@ -1,28 +1,34 @@
-import { useState, useMemo } from 'react';
-import { Search, Filter, Grid, List, SlidersHorizontal, ChevronDown } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
+import { Search, Grid, List, SlidersHorizontal, ChevronDown } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { sampleItems, categories, sizes, conditions } from '../data/sampleData';
 import ItemCard from '../components/ItemCard';
 import EmptyState from '../components/EmptyState';
+import LoadingSpinner from '../components/LoadingSpinner';
+import { categories, sizes, conditions } from '../constants';
 
 export default function BrowseItems() {
-  const { state, dispatch } = useApp();
+  const { state, dispatch, loadItems } = useApp();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState('newest');
   const [showFilters, setShowFilters] = useState(false);
   
   const filters = state.searchFilters;
 
+  // Load items on component mount
+  useEffect(() => {
+    loadItems();
+  }, []);
+
   // Filter and sort items
   const filteredItems = useMemo(() => {
-    let items = [...sampleItems];
+    let items = [...state.items];
 
     // Apply search query
     if (filters.query) {
       items = items.filter(item =>
         item.title.toLowerCase().includes(filters.query.toLowerCase()) ||
-        item.description.toLowerCase().includes(filters.query.toLowerCase()) ||
-        item.tags.some(tag => tag.toLowerCase().includes(filters.query.toLowerCase()))
+        (item.description && item.description.toLowerCase().includes(filters.query.toLowerCase())) ||
+        (item.tags && item.tags.toLowerCase().includes(filters.query.toLowerCase()))
       );
     }
 
@@ -44,30 +50,30 @@ export default function BrowseItems() {
     // Apply location filter
     if (filters.location) {
       items = items.filter(item =>
-        item.location.toLowerCase().includes(filters.location.toLowerCase())
+        item.location && item.location.toLowerCase().includes(filters.location.toLowerCase())
       );
     }
 
     // Sort items
     switch (sortBy) {
       case 'newest':
-        items = items.sort((a, b) => new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime());
+        items = items.sort((a, b) => new Date(b.date_added).getTime() - new Date(a.date_added).getTime());
         break;
       case 'oldest':
-        items = items.sort((a, b) => new Date(a.dateAdded).getTime() - new Date(b.dateAdded).getTime());
+        items = items.sort((a, b) => new Date(a.date_added).getTime() - new Date(b.date_added).getTime());
         break;
       case 'price-low':
-        items = items.sort((a, b) => a.points - b.points);
+        items = items.sort((a, b) => (a.points || 0) - (b.points || 0));
         break;
       case 'price-high':
-        items = items.sort((a, b) => b.points - a.points);
+        items = items.sort((a, b) => (b.points || 0) - (a.points || 0));
         break;
       default:
         break;
     }
 
     return items;
-  }, [filters, sortBy]);
+  }, [state.items, filters, sortBy]);
 
   const handleFilterChange = (key: string, value: string) => {
     dispatch({
@@ -84,6 +90,15 @@ export default function BrowseItems() {
   };
 
   const hasActiveFilters = Object.values(filters).some(value => value !== '');
+
+  // Show loading state
+  if (state.loading && state.items.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

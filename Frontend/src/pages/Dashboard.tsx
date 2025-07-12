@@ -1,27 +1,44 @@
 import { Link } from 'react-router-dom';
-import { Plus, Package, Clock, CheckCircle, Leaf, TrendingUp, Star, Users } from 'lucide-react';
+import { Plus, Package, Clock, CheckCircle, Leaf, Star } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { sampleItems } from '../data/sampleData';
-import ItemCard from '../components/ItemCard';
 import EmptyState from '../components/EmptyState';
+import { useEffect } from 'react';
+import AuthModal from '../components/AuthModal';
+import { useState } from 'react';
 
 export default function Dashboard() {
-  const { state } = useApp();
+  const { state, loadItems, loadSwapRequests, acceptSwapRequest, rejectSwapRequest } = useApp();
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const user = state.user;
 
+  // Load data on component mount
+  useEffect(() => {
+    if (user) {
+      loadItems();
+      loadSwapRequests();
+    }
+  }, [user]);
+
   // Filter items for current user
-  const myItems = sampleItems.filter(item => item.owner.id === user?.id);
-  const pendingSwaps = state.swapRequests.filter(req => req.ownerId === user?.id && req.status === 'pending');
-  const completedSwaps = state.swapRequests.filter(req => 
-    (req.ownerId === user?.id || req.requesterId === user?.id) && req.status === 'completed'
-  );
+  const myItems = state.items.filter(item => item.owner_id === user?.id);
+  const pendingSwaps = state.swapRequests.filter(req => req.owner_id === user?.id && req.status === 'pending');
 
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Please log in to view your dashboard</h2>
-          <Link to="/" className="btn-primary">Go to Home</Link>
+          <button 
+            onClick={() => setShowAuthModal(true)}
+            className="btn-primary"
+          >
+            Sign In
+          </button>
+          <AuthModal
+            isOpen={showAuthModal}
+            onClose={() => setShowAuthModal(false)}
+            initialMode="login"
+          />
         </div>
       </div>
     );
@@ -70,7 +87,7 @@ export default function Dashboard() {
                 <Package className="h-6 w-6 text-blue-600" />
               </div>
               <div>
-                <div className="text-2xl font-bold text-gray-900">{user.itemsListed}</div>
+                <div className="text-2xl font-bold text-gray-900">{user.items_listed}</div>
                 <div className="text-sm text-gray-500">Items Listed</div>
               </div>
             </div>
@@ -82,7 +99,7 @@ export default function Dashboard() {
                 <CheckCircle className="h-6 w-6 text-green-600" />
               </div>
               <div>
-                <div className="text-2xl font-bold text-gray-900">{user.swapsCompleted}</div>
+                <div className="text-2xl font-bold text-gray-900">{user.swaps_completed}</div>
                 <div className="text-sm text-gray-500">Successful Swaps</div>
               </div>
             </div>
@@ -106,7 +123,7 @@ export default function Dashboard() {
                 <Leaf className="h-6 w-6 text-emerald-600" />
               </div>
               <div>
-                <div className="text-2xl font-bold text-gray-900">{user.impactScore}</div>
+                <div className="text-2xl font-bold text-gray-900">{user.impact_score}</div>
                 <div className="text-sm text-gray-500">Impact Score</div>
               </div>
             </div>
@@ -133,7 +150,7 @@ export default function Dashboard() {
                   {myItems.slice(0, 3).map((item) => (
                     <div key={item.id} className="flex items-center space-x-4 p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
                       <img
-                        src={item.images[0]}
+                        src={item.images?.[0] || '/placeholder-image.jpg'}
                         alt={item.title}
                         className="h-16 w-16 rounded-lg object-cover"
                       />
@@ -189,7 +206,7 @@ export default function Dashboard() {
               {pendingSwaps.length > 0 ? (
                 <div className="space-y-4">
                   {pendingSwaps.map((swap) => {
-                    const item = sampleItems.find(i => i.id === swap.itemId);
+                    const item = state.items.find(i => i.id === swap.item_id);
                     return (
                       <div key={swap.id} className="p-4 border border-gray-200 rounded-lg">
                         <div className="flex items-center justify-between mb-2">
@@ -200,8 +217,18 @@ export default function Dashboard() {
                         </div>
                         <p className="text-sm text-gray-600 mb-3">{swap.message}</p>
                         <div className="flex space-x-2">
-                          <button className="btn-primary text-sm py-1 px-3">Accept</button>
-                          <button className="btn-secondary text-sm py-1 px-3">Decline</button>
+                          <button 
+                            onClick={() => acceptSwapRequest(swap.id)}
+                            className="btn-primary text-sm py-1 px-3"
+                          >
+                            Accept
+                          </button>
+                          <button 
+                            onClick={() => rejectSwapRequest(swap.id)}
+                            className="btn-secondary text-sm py-1 px-3"
+                          >
+                            Decline
+                          </button>
                         </div>
                       </div>
                     );
@@ -230,19 +257,19 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="text-center">
                 <div className="text-3xl font-bold mb-2">
-                  {(user.swapsCompleted * 2.5).toFixed(1)}kg
+                  {(user.swaps_completed * 2.5).toFixed(1)}kg
                 </div>
                 <div className="text-sm opacity-90">CO2 Prevented</div>
               </div>
               <div className="text-center">
                 <div className="text-3xl font-bold mb-2">
-                  {(user.swapsCompleted * 45).toFixed(0)}L
+                  {(user.swaps_completed * 45).toFixed(0)}L
                 </div>
                 <div className="text-sm opacity-90">Water Saved</div>
               </div>
               <div className="text-center">
                 <div className="text-3xl font-bold mb-2">
-                  {user.swapsCompleted}
+                  {user.swaps_completed}
                 </div>
                 <div className="text-sm opacity-90">Items Diverted from Landfill</div>
               </div>

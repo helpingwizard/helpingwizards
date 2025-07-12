@@ -22,7 +22,7 @@ export default function ItemCard({ item, showOwner = true }: ItemCardProps) {
         {/* Image */}
         <div className="relative aspect-w-4 aspect-h-3 bg-gray-200">
           <img
-            src={item.images[0]}
+            src={item.images && item.images.length > 0 ? item.images[0] : '/placeholder-image.jpg'}
             alt={item.title}
             className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-200"
           />
@@ -74,36 +74,36 @@ export default function ItemCard({ item, showOwner = true }: ItemCardProps) {
           {showOwner && (
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <img
-                  src={item.owner.avatar}
-                  alt={item.owner.name}
-                  className="h-6 w-6 rounded-full"
-                />
-                <span className="text-sm text-gray-600">{item.owner.name}</span>
+                <div className="h-6 w-6 rounded-full bg-gray-300 flex items-center justify-center">
+                  <span className="text-xs text-gray-600">U</span>
+                </div>
+                <span className="text-sm text-gray-600">Owner #{item.owner_id}</span>
               </div>
               <div className="flex items-center space-x-1">
                 <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                <span className="text-sm text-gray-600">{item.owner.rating}</span>
+                <span className="text-sm text-gray-600">5.0</span>
               </div>
             </div>
           )}
 
           {/* Tags */}
-          <div className="flex flex-wrap gap-1 mt-2">
-            {item.tags.slice(0, 3).map((tag) => (
-              <span
-                key={tag}
-                className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
-              >
-                {tag}
-              </span>
-            ))}
-            {item.tags.length > 3 && (
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                +{item.tags.length - 3}
-              </span>
-            )}
-          </div>
+          {item.tags && (
+            <div className="flex flex-wrap gap-1 mt-2">
+              {item.tags.split(',').slice(0, 3).map((tag) => (
+                <span
+                  key={tag}
+                  className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
+                >
+                  {tag.trim()}
+                </span>
+              ))}
+              {item.tags.split(',').length > 3 && (
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                  +{item.tags.split(',').length - 3}
+                </span>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </Link>

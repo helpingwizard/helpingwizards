@@ -1,11 +1,14 @@
-from pydantic import BaseModel
-from typing import Optional
+from pydantic import BaseModel, validator
+from typing import Optional, List
 from enum import Enum
+from datetime import datetime
+import json
 
 class ItemStatus(str, Enum):
     available = "available"
     pending = "pending"
     swapped = "swapped"
+    rejected = "rejected"
 
 class ItemBase(BaseModel):
     title: str
@@ -15,6 +18,9 @@ class ItemBase(BaseModel):
     size: Optional[str] = None
     condition: Optional[str] = None
     tags: Optional[str] = None
+    images: Optional[List[str]] = None
+    location: Optional[str] = None
+    points: Optional[int] = None
 
 class ItemCreate(ItemBase):
     pass
@@ -26,6 +32,17 @@ class ItemOut(ItemBase):
     id: int
     status: ItemStatus
     owner_id: int
+    date_added: datetime
+    images: Optional[List[str]] = None
+
+    @validator('images', pre=True)
+    def parse_images(cls, v):
+        if isinstance(v, str):
+            try:
+                return json.loads(v) if v else []
+            except json.JSONDecodeError:
+                return []
+        return v or []
 
     class Config:
         orm_mode = True

@@ -1,22 +1,31 @@
 from pydantic import BaseModel
-from enum import Enum
 from typing import Optional
+from enum import Enum
+from datetime import datetime
 
 class SwapStatus(str, Enum):
     pending = "pending"
     accepted = "accepted"
-    declined = "declined"
+    rejected = "rejected"
+    completed = "completed"
 
-class SwapCreate(BaseModel):
-    requested_item_id: int
-    offered_item_id: int
-
-class SwapOut(BaseModel):
-    id: int
-    requested_item_id: int
-    offered_item_id: int
-    status: SwapStatus
+class SwapBase(BaseModel):
+    item_id: int
     requester_id: int
+    owner_id: int
+    message: Optional[str] = None
+
+class SwapCreate(SwapBase):
+    pass
+
+class SwapUpdate(BaseModel):
+    status: Optional[SwapStatus] = None
+    message: Optional[str] = None
+
+class SwapOut(SwapBase):
+    id: int
+    status: SwapStatus
+    date_created: datetime
 
     class Config:
         orm_mode = True
