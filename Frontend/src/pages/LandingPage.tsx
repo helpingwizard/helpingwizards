@@ -1,0 +1,210 @@
+import { Link } from 'react-router-dom';
+import { ArrowRight, Users, Recycle, Heart, TrendingUp, Leaf, Droplets } from 'lucide-react';
+import { sampleItems, sustainabilityStats } from '../data/sampleData';
+import ItemCard from '../components/ItemCard';
+
+export default function LandingPage() {
+  const featuredItems = sampleItems.slice(0, 6);
+
+  return (
+    <div className="min-h-screen">
+      {/* Hero Section */}
+      <section className="relative bg-gradient-to-r from-primary-600 to-emerald-600 text-white">
+        <div className="absolute inset-0 bg-black opacity-20"></div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+          <div className="text-center">
+            <h1 className="text-4xl md:text-6xl font-bold mb-6">
+              Swap, Share, Save the Planet
+            </h1>
+            <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto opacity-90">
+              Join the sustainable fashion revolution. Exchange clothes, build community, 
+              and make a positive impact on the environment.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link
+                to="/browse"
+                className="bg-white text-primary-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors duration-200 inline-flex items-center justify-center"
+              >
+                Start Swapping
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Link>
+              <Link
+                to="/browse"
+                className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-primary-600 transition-colors duration-200 inline-flex items-center justify-center"
+              >
+                Browse Items
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Value Propositions */}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Why Choose ReWear?
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Join thousands of fashion-forward, environmentally conscious individuals 
+              who are making a difference.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Sustainability */}
+            <div className="text-center">
+              <div className="bg-green-100 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                <Leaf className="h-8 w-8 text-green-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Sustainable Fashion</h3>
+              <p className="text-gray-600">
+                Reduce waste and carbon footprint by giving clothes a second life. 
+                Every swap helps protect our environment.
+              </p>
+            </div>
+
+            {/* Community */}
+            <div className="text-center">
+              <div className="bg-blue-100 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                <Users className="h-8 w-8 text-blue-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Build Community</h3>
+              <p className="text-gray-600">
+                Connect with like-minded individuals who share your values. 
+                Build lasting friendships through fashion.
+              </p>
+            </div>
+
+            {/* Savings */}
+            <div className="text-center">
+              <div className="bg-purple-100 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                <Heart className="h-8 w-8 text-purple-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Smart Savings</h3>
+              <p className="text-gray-600">
+                Refresh your wardrobe without breaking the bank. 
+                Get quality pieces through our points-based system.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Items */}
+      <section className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Featured Items
+            </h2>
+            <p className="text-lg text-gray-600">
+              Discover amazing pieces from our community members
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {featuredItems.map((item) => (
+              <ItemCard key={item.id} item={item} />
+            ))}
+          </div>
+          
+          <div className="text-center mt-8">
+            <Link
+              to="/browse"
+              className="btn-primary inline-flex items-center"
+            >
+              View All Items
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Statistics */}
+      <section className="py-16 bg-primary-600 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Our Impact Together
+            </h2>
+            <p className="text-lg opacity-90">
+              See how our community is making a difference
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div className="text-center">
+              <div className="bg-white bg-opacity-20 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                <Recycle className="h-8 w-8 text-white" />
+              </div>
+              <div className="text-3xl font-bold mb-2">
+                {sustainabilityStats.itemsSwapped.toLocaleString()}
+              </div>
+              <div className="text-sm opacity-90">Items Swapped</div>
+            </div>
+            
+            <div className="text-center">
+              <div className="bg-white bg-opacity-20 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                <Leaf className="h-8 w-8 text-white" />
+              </div>
+              <div className="text-3xl font-bold mb-2">
+                {sustainabilityStats.co2Saved.toLocaleString()}kg
+              </div>
+              <div className="text-sm opacity-90">CO2 Saved</div>
+            </div>
+            
+            <div className="text-center">
+              <div className="bg-white bg-opacity-20 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                <Droplets className="h-8 w-8 text-white" />
+              </div>
+              <div className="text-3xl font-bold mb-2">
+                {sustainabilityStats.waterSaved.toLocaleString()}L
+              </div>
+              <div className="text-sm opacity-90">Water Saved</div>
+            </div>
+            
+            <div className="text-center">
+              <div className="bg-white bg-opacity-20 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                <Users className="h-8 w-8 text-white" />
+              </div>
+              <div className="text-3xl font-bold mb-2">
+                {sustainabilityStats.communityMembers.toLocaleString()}
+              </div>
+              <div className="text-sm opacity-90">Community Members</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-16 bg-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            Ready to Start Your Sustainable Journey?
+          </h2>
+          <p className="text-lg text-gray-600 mb-8">
+            Join our community today and make a positive impact on the planet 
+            while refreshing your wardrobe.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              to="/add-item"
+              className="btn-primary inline-flex items-center justify-center"
+            >
+              List an Item
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Link>
+            <Link
+              to="/browse"
+              className="btn-secondary inline-flex items-center justify-center"
+            >
+              Browse Items
+            </Link>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+} 
