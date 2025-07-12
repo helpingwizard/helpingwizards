@@ -1,0 +1,13 @@
+fastapi
+uvicorn[standard]
+psycopg2-binary
+pgvector
+sentence-transformers
+Pillow
+requests
+transformers
+torch
+torchvision
+ultralyticsplus==0.0.23
+ultralytics==8.0.21
+opencv-python
