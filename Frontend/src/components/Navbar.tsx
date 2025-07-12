@@ -115,6 +115,15 @@ export default function Navbar() {
                       >
                         My Profile
                       </Link>
+                      {state.user.is_admin && (
+                        <Link
+                          to="/admin"
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          onClick={() => setIsProfileOpen(false)}
+                        >
+                          Admin Panel
+                        </Link>
+                      )}
                       <div className="border-t border-gray-100"></div>
                       <button 
                         onClick={handleLogout}
@@ -203,6 +212,15 @@ export default function Navbar() {
                 >
                   My Profile
                 </Link>
+                {state.user.is_admin && (
+                  <Link
+                    to="/admin"
+                    className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-primary-600"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Admin Panel
+                  </Link>
+                )}
                 <div className="border-t border-gray-200 pt-2">
                   <div className="flex items-center px-3 py-2">
                     {state.user.avatar ? (

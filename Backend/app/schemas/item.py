@@ -21,6 +21,7 @@ class ItemBase(BaseModel):
     images: Optional[List[str]] = None
     location: Optional[str] = None
     points: Optional[int] = None
+    embeddings: Optional[List[float]] = None
 
 class ItemCreate(ItemBase):
     pass
@@ -34,6 +35,7 @@ class ItemOut(ItemBase):
     owner_id: int
     date_added: datetime
     images: Optional[List[str]] = None
+    embeddings: Optional[List[float]] = None
 
     @validator('images', pre=True)
     def parse_images(cls, v):
@@ -43,6 +45,15 @@ class ItemOut(ItemBase):
             except json.JSONDecodeError:
                 return []
         return v or []
+
+    @validator('embeddings', pre=True)
+    def parse_embeddings(cls, v):
+        if isinstance(v, str):
+            try:
+                return json.loads(v) if v else None
+            except json.JSONDecodeError:
+                return None
+        return v
 
     class Config:
         orm_mode = True

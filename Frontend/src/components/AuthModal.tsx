@@ -51,6 +51,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
             items_listed: user.items_listed,
             impact_score: user.impact_score,
             location: user.location,
+            is_admin: user.is_admin,
           },
         });
       } else {
@@ -82,6 +83,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
             items_listed: user.items_listed,
             impact_score: user.impact_score,
             location: user.location,
+            is_admin: user.is_admin,
           },
         });
       }
@@ -151,15 +153,16 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
                 
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                    Email Address
+                    Email Address or Username
                   </label>
                   <input
-                    type="email"
+                    type="text"
                     id="email"
                     name="email"
                     value={formData.email}
                     onChange={handleInputChange}
                     required
+                    placeholder="Enter email or username"
                     className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>

@@ -15,6 +15,7 @@ export interface User {
   location?: string;
   following?: string[];
   followers?: string[];
+  is_admin?: boolean;
 }
 
 export interface Item {
@@ -176,6 +177,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             items_listed: user.items_listed,
             impact_score: user.impact_score,
             location: user.location,
+            is_admin: user.is_admin,
           }});
         } catch (error) {
           console.error('Failed to load user data:', error);
@@ -206,6 +208,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           items_listed: user.items_listed,
           impact_score: user.impact_score,
           location: user.location,
+          is_admin: user.is_admin,
         }});
       } catch (error) {
         console.error('Failed to refresh user data:', error);

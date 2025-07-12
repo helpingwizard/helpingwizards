@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from app.models.item import Item
+from app.models.item import Item, ItemStatus
 from app.schemas.item import ItemCreate, ItemUpdate
 import json
 
@@ -11,6 +11,10 @@ def create_item(db: Session, item: ItemCreate, owner_id: int):
     elif item_data.get('images') is None:
         item_data['images'] = json.dumps([])
     
+    # Set status to pending by default for admin approval
+    if 'status' not in item_data:
+        item_data['status'] = ItemStatus.pending
+    
     db_item = Item(**item_data, owner_id=owner_id)
     db.add(db_item)
     db.commit()
@@ -21,7 +25,8 @@ def get_item(db: Session, item_id: int):
     return db.query(Item).filter(Item.id == item_id).first()
 
 def get_all_items(db: Session, skip=0, limit=10):
-    return db.query(Item).offset(skip).limit(limit).all()
+    # Only return approved items for regular users
+    return db.query(Item).filter(Item.status == ItemStatus.available).offset(skip).limit(limit).all()
 
 def update_item(db: Session, item_id: int, updates: ItemUpdate):
     db_item = get_item(db, item_id)

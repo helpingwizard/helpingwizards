@@ -27,5 +27,6 @@ class Item(Base):
     status = Column(Enum(ItemStatus), default=ItemStatus.available)
     date_added = Column(DateTime, default=func.now())
     owner_id = Column(Integer, ForeignKey("users.id"))
+    embeddings = Column(Text, nullable=True)  # Vector embeddings stored as JSON string for SQLite compatibility
 
     owner = relationship("User", back_populates="items")

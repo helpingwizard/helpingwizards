@@ -7,6 +7,7 @@ import BrowseItems from './pages/BrowseItems';
 import ItemDetail from './pages/ItemDetail';
 import AddItem from './pages/AddItem';
 import UserProfile from './pages/UserProfile';
+import AdminPanel from './pages/AdminPanel';
 import { AppProvider } from './context/AppContext';
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
               <Route path="/item/:id" element={<ItemDetail />} />
               <Route path="/add-item" element={<AddItem />} />
               <Route path="/profile/:id" element={<UserProfile />} />
+              <Route path="/admin" element={<AdminPanel />} />
             </Routes>
           </main>
           <Footer />

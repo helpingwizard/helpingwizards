@@ -1,14 +1,18 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, Users, Recycle, Heart, Leaf, Droplets, Phone } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useEffect, useState } from 'react';
 import ItemCard from '../components/ItemCard';
 import { callApi } from '../api/call';
+import AuthModal from '../components/AuthModal';
 
 export default function LandingPage() {
   const { state, loadItems } = useApp();
+  const navigate = useNavigate();
   const [isCallLoading, setIsCallLoading] = useState(false);
   const [callMessage, setCallMessage] = useState('');
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authMessage, setAuthMessage] = useState('');
   
   // Load items on component mount
   useEffect(() => {
@@ -28,6 +32,31 @@ export default function LandingPage() {
       setCallMessage(error instanceof Error ? error.message : 'Failed to make call');
     } finally {
       setIsCallLoading(false);
+    }
+  };
+
+  const handleAdminLogin = () => {
+    setAuthMessage('');
+    if (state.user) {
+      // User is already logged in, check if admin
+      if (state.user.is_admin) {
+        navigate('/admin');
+      } else {
+        setAuthMessage('Access denied. Admin privileges required.');
+      }
+    } else {
+      // User not logged in, open login modal
+      setIsAuthModalOpen(true);
+    }
+  };
+
+  const handleAuthModalClose = () => {
+    setIsAuthModalOpen(false);
+    // After login, check if user is admin and redirect
+    if (state.user?.is_admin) {
+      navigate('/admin');
+    } else if (state.user) {
+      setAuthMessage('Access denied. Admin privileges required.');
     }
   };
 
@@ -68,6 +97,12 @@ export default function LandingPage() {
                 Browse Items
               </Link>
               <button
+                onClick={handleAdminLogin}
+                className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-3 rounded-lg font-semibold hover:from-indigo-600 hover:to-purple-700 transition-all duration-200 inline-flex items-center justify-center shadow-lg hover:shadow-xl"
+              >
+                🛡️ Admin Login
+              </button>
+              <button
                 onClick={handleCallBot}
                 disabled={isCallLoading}
                 className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-8 py-3 rounded-lg font-semibold hover:from-orange-600 hover:to-red-600 transition-all duration-200 inline-flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
@@ -92,6 +127,11 @@ export default function LandingPage() {
                   : 'bg-red-100 text-red-800 border border-red-200'
               }`}>
                 {callMessage}
+              </div>
+            )}
+            {authMessage && (
+              <div className="mt-4 p-3 rounded-lg bg-red-100 text-red-800 border border-red-200">
+                {authMessage}
               </div>
             )}
           </div>
@@ -281,6 +321,13 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={handleAuthModalClose}
+        initialMode="login"
+      />
     </div>
   );
 } 

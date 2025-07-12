@@ -6,6 +6,19 @@ from app.core.security import get_password_hash
 def get_user_by_email(db: Session, email: str):
     return db.query(User).filter(User.email == email).first()
 
+def get_user_by_username_or_email(db: Session, username: str):
+    """Get user by username or email - handles both cases"""
+    # First try to find by email
+    user = db.query(User).filter(User.email == username).first()
+    if user:
+        return user
+    
+    # Special case for admin username
+    if username == "admin":
+        return db.query(User).filter(User.email == "admin@admin.com").first()
+    
+    return None
+
 def create_user(db: Session, user: UserCreate):
     db_user = User(
         email=user.email, 
