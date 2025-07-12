@@ -12,3 +12,8 @@ Develop **ReWear**, a 🌐 web-based platform that enables users to exchange unu
 - 👤 Vaibhav Rahalkar – 📧 vaibhavrahalkar7@gmail.com  
 - 👤 Atharva Despande – 📧 atharvadeshpande1507@gmail.com  
 - 👤 Tanish Charthankar – 📧 vctanish7@gmail.com
+
+
+# Start both servers:
+## Backend: cd Backend && python3 -m uvicorn app.main:app --reload
+## Frontend: cd Frontend && npm run dev
